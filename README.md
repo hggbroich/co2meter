@@ -47,7 +47,17 @@ $ composer install --no-dev --optimize-autoloader
 $ cp .env .env.local
 ```
 
-Nun mittels Texteditor die Konfigurationsdatei (`.env.local`) entsprechend anpassen und anschließend die Datenbank erstellen:
+Nun mittels Texteditor die Konfigurationsdatei (`.env.local`) entsprechend anpassen.
+
+* `APP_ENV` muss `prod` sein
+* `APP_SECRET` kann mittels `openssl rand -base64 32` erzeugt werden
+* `DATABASE_URL` muss einen MariaDB-DSN enthalten (siehe Beispiele in der Konfigurationsdatei)
+* `INFLUX_URL` enthält die URL zum InfluxDB-Server (in der Regel http://localhost:8086)
+* `INFLUX_TOKEN` enthält das über die InfluxDB UI erstelle Token (Wichtig: es benötigt Schreibrechte)
+* `INFLUX_BUCKET` enthält den Namen des InfluxDB Buckets, welcher über das InfluxDB UI erstellt wurde (z.B. `co2meter`)
+* `INFLUX_ORG` enthält den Namen der Organisation für das InfluxDB Bucket 
+
+Anschließend die Datenbank erstellen:
 
 ```bash
 $ php bin/console doctrine:migrations:migrate
