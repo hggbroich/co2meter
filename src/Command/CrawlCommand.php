@@ -13,24 +13,20 @@ use InfluxDB2\Client as InfluxClient;
 use InfluxDB2\Point;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[AsCommand('app:crawl', description: 'Liest die Werte für alle Geräte aus und schreibt sie in die InfluxDB')]
-class CrawlCommand extends Command {
+class CrawlCommand {
 
     public const Endpoint = 'getData';
 
     public function __construct(private readonly EntityManagerInterface $em,
                                 private readonly SerializerInterface $serializer,
-                                private readonly InfluxClient $influxdb, string $name = null) {
-        parent::__construct($name);
+                                private readonly InfluxClient $influxdb) {
     }
 
-    public function execute(InputInterface $input, OutputInterface $output) {
-        $io = new SymfonyStyle($input, $output);
+    public function __invoke(SymfonyStyle $io): int {
         $client = new Client([
             'timeout' => 2
         ]);

@@ -12,26 +12,21 @@ use GuzzleHttp\Client;
 use IPLib\Factory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[AsCommand('app:scan', description: 'Scannt das Netzwerk nach IP-Adressen')]
-class ScanCommand extends Command {
+class ScanCommand {
 
     public const Endpoint = 'getData';
 
-    public function __construct(private readonly EntityManagerInterface $em, private readonly SerializerInterface $serializer, string $name = null) {
-        parent::__construct($name);
+    public function __construct(private readonly EntityManagerInterface $em, private readonly SerializerInterface $serializer) {
     }
 
-    public function execute(InputInterface $input, OutputInterface $output) {
-        $io = new SymfonyStyle($input, $output);
+    public function __invoke(SymfonyStyle $io): int {
         $client = new Client([
             'timeout' => 1
         ]);
-
 
         foreach($this->em->getRepository(IpNetwork::class)->findAll() as $network) {
             $io->section(sprintf('Scanne %s (%s)', $network->getName(), $network->getCidr()));
@@ -44,13 +39,13 @@ class ScanCommand extends Command {
                     continue;
                 }
 
-                $io->text(sprintf('Prüfe %s (%d)', $ipAddress->toString(), $ipAddress->getAddressType()));
+                $io->text(sprintf('Prüfe %s (v%d)', $ipAddress->toString(), $ipAddress->getAddressType()));
                 try {
                     $response = $client->get(sprintf('http://%s/%s', $ipAddress->toString(), self::Endpoint));
                     $json = $response->getBody();
 
                     $result = $this->serializer->deserialize($json, JsonResponse::class, 'json');
-                    list($mac, $deviceName) = explode('-', $result->getDevice());
+                    [$mac, $deviceName] = explode('-', $result->getDevice());
 
                     $device = $this->em->getRepository(Device::class)->findOneBy([
                         'mac' => $mac
